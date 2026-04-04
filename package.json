@@ -20,8 +20,12 @@
     "express-validator": "^7.3.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.3.3",
-    "morgan": "^1.10.1",
-    "nodemon": "^3.1.14"
+    "mongoose": "^9.4.1",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }
