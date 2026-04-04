@@ -2,3 +2,5 @@
 
 node_modules/
 .vercel
+
+live_test.js

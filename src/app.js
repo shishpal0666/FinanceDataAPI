@@ -12,9 +12,6 @@ const authRoutes = require("./modules/auth/auth.routes");
 const usersRoutes = require("./modules/users/users.routes");
 const recordsRoutes = require("./modules/records/records.routes");
 const dashboardRoutes = require("./modules/dashboard/dashboard.routes");
-const swaggerUi   = require("swagger-ui-express");
-const swaggerSpec = require("./config/swagger");
-
 const app = express();
 
 // Connect DB
@@ -34,13 +31,6 @@ app.use("/api", apiLimiter);
 app.get("/health", (req, res) =>
   res.json({ status: "ok", timestamp: new Date() }),
 );
-
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customSiteTitle: "Finance API Docs",
-  swaggerOptions: {
-    persistAuthorization: true, // keeps the JWT token across page refreshes
-  },
-}));
 
 // Routes
 app.use("/api/auth", authRoutes);
