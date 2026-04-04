@@ -7,10 +7,20 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "seed": "node seed.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand --forceExit"
   },
   "author": "",
   "license": "ISC",
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000,
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -21,10 +31,13 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "jest": "^30.3.0",
+    "mongodb-memory-server": "^11.0.1",
     "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
   }

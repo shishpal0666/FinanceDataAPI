@@ -1,6 +1,7 @@
 const FinancialRecord = require("../../models/FinancialRecord");
 const AuditLog = require("../../models/AuditLog");
 const ApiError = require("../../utils/ApiError");
+const withTransaction = require("../../utils/withTransaction");
 const { paginate, paginateMeta } = require("../../utils/pagination");
 
 const buildFilter = (query) => {
@@ -22,23 +23,37 @@ const buildFilter = (query) => {
 };
 
 const createRecord = async (data, userId) => {
-  const record = await FinancialRecord.create({ ...data, createdBy: userId });
+  return withTransaction(async (session) => {
+    // Model.create() with a session requires an array
+    const [record] = await FinancialRecord.create(
+      [{ ...data, createdBy: userId }],
+      { session },
+    );
 
-  await AuditLog.create({
-    action: "CREATE_RECORD",
-    entityType: "FinancialRecord",
-    entityId: record._id.toString(),
-    metadata: { amount: data.amount, type: data.type },
-    performedBy: userId,
+    await AuditLog.create(
+      [
+        {
+          action: "CREATE_RECORD",
+          entityType: "FinancialRecord",
+          entityId: record._id.toString(),
+          metadata: {
+            amount: data.amount,
+            type: data.type,
+            category: data.category,
+          },
+          performedBy: userId,
+        },
+      ],
+      { session },
+    );
+
+    return record;
   });
-
-  return record;
 };
 
 const getRecords = async (query) => {
   const { page, limit, skip } = paginate(query);
   const filter = buildFilter(query);
-
   const sortField = query.sortBy || "date";
   const sortOrder = query.order === "asc" ? 1 : -1;
 
@@ -64,41 +79,56 @@ const getRecordById = async (id) => {
 };
 
 const updateRecord = async (id, data, userId) => {
-  const record = await FinancialRecord.findById(id);
-  if (!record) throw ApiError.notFound("Record not found");
+  return withTransaction(async (session) => {
+    const record = await FinancialRecord.findById(id).session(session);
+    if (!record) throw ApiError.notFound("Record not found");
 
-  const updatedRecord = await FinancialRecord.findByIdAndUpdate(id, data, {
-    new: true,
-    runValidators: true,
+    const updated = await FinancialRecord.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+      session,
+    });
+
+    await AuditLog.create(
+      [
+        {
+          action: "UPDATE_RECORD",
+          entityType: "FinancialRecord",
+          entityId: id,
+          metadata: { changes: data },
+          performedBy: userId,
+        },
+      ],
+      { session },
+    );
+
+    return updated;
   });
-
-  await AuditLog.create({
-    action: "UPDATE_RECORD",
-    entityType: "FinancialRecord",
-    entityId: id,
-    metadata: { changes: data },
-    performedBy: userId,
-  });
-
-  return updatedRecord;
 };
 
 const softDeleteRecord = async (id, userId) => {
-  const record = await FinancialRecord.findById(id);
-  if (!record) throw ApiError.notFound("Record not found");
+  return withTransaction(async (session) => {
+    const record = await FinancialRecord.findById(id).session(session);
+    if (!record) throw ApiError.notFound("Record not found");
 
-  record.isDeleted = true;
-  record.deletedAt = new Date();
-  await record.save();
+    await FinancialRecord.findByIdAndUpdate(
+      id,
+      { isDeleted: true, deletedAt: new Date() },
+      { session },
+    );
 
-  await AuditLog.create({
-    action: "DELETE_RECORD",
-    entityType: "FinancialRecord",
-    entityId: id,
-    performedBy: userId,
+    await AuditLog.create(
+      [
+        {
+          action: "DELETE_RECORD",
+          entityType: "FinancialRecord",
+          entityId: id,
+          performedBy: userId,
+        },
+      ],
+      { session },
+    );
   });
-
-  return { message: "Record deleted successfully" };
 };
 
 module.exports = {

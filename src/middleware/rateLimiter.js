@@ -1,7 +1,10 @@
 const rateLimit = require("express-rate-limit");
 
+// Dummy limiter for testing
+const passThrough = (req, res, next) => next();
+
 // Strict limiter for auth routes
-const authLimiter = rateLimit({
+const authLimiter = process.env.NODE_ENV === "test" ? passThrough : rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
   message: {
@@ -13,7 +16,7 @@ const authLimiter = rateLimit({
 });
 
 // General API limiter
-const apiLimiter = rateLimit({
+const apiLimiter = process.env.NODE_ENV === "test" ? passThrough : rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
   message: { success: false, message: "Too many requests." },

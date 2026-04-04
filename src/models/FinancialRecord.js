@@ -50,7 +50,6 @@ FinancialRecordSchema.index({ isDeleted: 1 });
 FinancialRecordSchema.index({ createdBy: 1 });
 
 // Always exclude soft-deleted docs by default
-// Note: Mongoose 9 query middleware does not pass next — use synchronous style
 FinancialRecordSchema.pre(/^find/, function () {
   if (this._conditions.isDeleted === undefined) {
     this.where({ isDeleted: false });
