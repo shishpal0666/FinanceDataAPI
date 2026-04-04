@@ -116,13 +116,64 @@ router.use(protect);
  *     responses:
  *       200:
  *         description: List of records with pagination metadata
+ *
+ * /records/{id}:
+ *   get:
+ *     summary: Get a single financial record
+ *     tags: [Records]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Financial record details
+ * 
+ *   patch:
+ *     summary: Update a financial record
+ *     tags: [Records]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount: { type: number }
+ *               category: { type: string }
+ *     responses:
+ *       200:
+ *         description: Record updated
+ *
+ *   delete:
+ *     summary: Soft delete a financial record
+ *     tags: [Records]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Record deleted
  */
-router.get("/", controller.getAll); // ALL roles
-router.get("/:id", controller.getOne); // ALL roles
+router.get("/", requireRole("analyst"), controller.getAll); // analyst + admin
+router.get("/:id", requireRole("analyst"), controller.getOne); // analyst + admin
 
 router.post(
   "/",
-  requireRole("analyst"), // analyst + admin
+  requireRole("admin"), // admin only
   recordRules,
   validate,
   controller.create,
@@ -130,7 +181,7 @@ router.post(
 
 router.patch(
   "/:id",
-  requireRole("analyst"), // analyst + admin
+  requireRole("admin"), // admin only
   updateRecordRules,
   validate,
   controller.update,

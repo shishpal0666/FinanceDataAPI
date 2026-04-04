@@ -36,4 +36,13 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
-module.exports = { getAll, updateRole, updateStatus };
+const create = async (req, res, next) => {
+  try {
+    const user = await usersService.createUser(req.body, req.user._id);
+    res.status(201).json(ApiResponse.ok(user, "User created successfully"));
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getAll, updateRole, updateStatus, create };

@@ -70,8 +70,8 @@ const createRecord = (token, body = validRecord) =>
     .send(body);
 
 describe("POST /api/records", () => {
-  it("analyst should create a record successfully", async () => {
-    const res = await createRecord(analystToken);
+  it("admin should create a record successfully", async () => {
+    const res = await createRecord(adminToken);
 
     expect(res.statusCode).toBe(201);
     expect(res.body.success).toBe(true);
@@ -79,9 +79,10 @@ describe("POST /api/records", () => {
     expect(res.body.data.category).toBe("Salary");
   });
 
-  it("admin should also create a record", async () => {
-    const res = await createRecord(adminToken);
-    expect(res.statusCode).toBe(201);
+  it("analyst should be forbidden from creating records", async () => {
+    const res = await createRecord(analystToken);
+    expect(res.statusCode).toBe(403);
+    expect(res.body.success).toBe(false);
   });
 
   it("viewer should be forbidden from creating records", async () => {
@@ -91,7 +92,7 @@ describe("POST /api/records", () => {
   });
 
   it("should return 400 for missing required fields", async () => {
-    const res = await createRecord(analystToken, { amount: 100 }); // missing type, category, date
+    const res = await createRecord(adminToken, { amount: 100 }); // missing type, category, date
 
     expect(res.statusCode).toBe(400);
     expect(res.body.errors).toBeInstanceOf(Array);
@@ -99,7 +100,7 @@ describe("POST /api/records", () => {
   });
 
   it("should return 400 for negative amount", async () => {
-    const res = await createRecord(analystToken, {
+    const res = await createRecord(adminToken, {
       ...validRecord,
       amount: -50,
     });
@@ -118,8 +119,8 @@ describe("POST /api/records", () => {
 
 describe("GET /api/records", () => {
   beforeEach(async () => {
-    await createRecord(analystToken);
-    await createRecord(analystToken, {
+    await createRecord(adminToken);
+    await createRecord(adminToken, {
       ...validRecord,
       type: "expense",
       category: "Rent",
@@ -127,10 +128,10 @@ describe("GET /api/records", () => {
     });
   });
 
-  it("any authenticated user can list records", async () => {
+  it("analyst can list records", async () => {
     const res = await request(app)
       .get("/api/records")
-      .set("Authorization", `Bearer ${viewerToken}`);
+      .set("Authorization", `Bearer ${analystToken}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toHaveLength(2);
@@ -140,7 +141,7 @@ describe("GET /api/records", () => {
   it("should filter records by type", async () => {
     const res = await request(app)
       .get("/api/records?type=expense")
-      .set("Authorization", `Bearer ${viewerToken}`);
+      .set("Authorization", `Bearer ${analystToken}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.data.every((r) => r.type === "expense")).toBe(true);
@@ -149,7 +150,7 @@ describe("GET /api/records", () => {
   it("should paginate results", async () => {
     const res = await request(app)
       .get("/api/records?page=1&limit=1")
-      .set("Authorization", `Bearer ${viewerToken}`);
+      .set("Authorization", `Bearer ${analystToken}`);
 
     expect(res.body.data).toHaveLength(1);
     expect(res.body.meta.totalPages).toBe(2);
@@ -158,7 +159,7 @@ describe("GET /api/records", () => {
 
 describe("DELETE /api/records/:id (soft delete)", () => {
   it("admin can soft-delete a record", async () => {
-    const create = await createRecord(analystToken);
+    const create = await createRecord(adminToken);
     const id = create.body.data._id;
 
     const del = await request(app)
@@ -176,7 +177,7 @@ describe("DELETE /api/records/:id (soft delete)", () => {
   });
 
   it("analyst cannot delete records", async () => {
-    const create = await createRecord(analystToken);
+    const create = await createRecord(adminToken);
     const id = create.body.data._id;
 
     const res = await request(app)

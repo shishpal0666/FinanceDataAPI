@@ -55,4 +55,29 @@ const updateStatus = async (targetId, isActive, adminId) => {
   return user;
 };
 
-module.exports = { getAllUsers, updateRole, updateStatus };
+const createUser = async (data, adminId) => {
+  const existing = await User.findOne({ email: data.email });
+  if (existing) throw ApiError.badRequest("Email already in use");
+
+  // Create user directly with role since Admin is creating them
+  const user = await User.create(data);
+
+  await AuditLog.create({
+    action: "CREATE_USER",
+    entityType: "User",
+    entityId: user._id,
+    metadata: {
+      role: user.role,
+      email: user.email,
+    },
+    performedBy: adminId,
+  });
+
+  // Convert to object and remove password for response
+  const userObj = user.toObject();
+  delete userObj.password;
+  
+  return userObj;
+};
+
+module.exports = { getAllUsers, updateRole, updateStatus, createUser };
