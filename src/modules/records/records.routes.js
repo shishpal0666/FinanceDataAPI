@@ -20,6 +20,31 @@ const recordRules = [
     .withMessage("Description max 500 chars"),
 ];
 
+// Separate rules for PATCH — all fields optional (fresh instances, no mutation)
+const updateRecordRules = [
+  body("amount")
+    .optional()
+    .isFloat({ min: 0.01 })
+    .withMessage("Amount must be a positive number"),
+  body("type")
+    .optional()
+    .isIn(["income", "expense"])
+    .withMessage("Type must be income or expense"),
+  body("category")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Category is required"),
+  body("date")
+    .optional()
+    .isISO8601()
+    .withMessage("Date must be a valid ISO8601 date"),
+  body("description")
+    .optional()
+    .isLength({ max: 500 })
+    .withMessage("Description max 500 chars"),
+];
+
 router.use(protect);
 
 router.get("/", controller.getAll); // ALL roles
@@ -36,7 +61,7 @@ router.post(
 router.patch(
   "/:id",
   requireRole("analyst"), // analyst + admin
-  recordRules.map((r) => r.optional()), // all fields optional on update
+  updateRecordRules,
   validate,
   controller.update,
 );
