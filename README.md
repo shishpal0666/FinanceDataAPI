@@ -1,6 +1,10 @@
 # Finance Data API
 *Finance Data Processing and Access Control Backend*
 
+**Developer:** Shishpal Polampally  
+**Email:** shishpalpolampally@gmail.com  
+**Role:** Backend Developer Intern - Zorvyn Assignment
+
 ## Project Overview
 This is a robust, clean, and scalable backend API built for a finance dashboard system. It handles the storage, management, and analytical aggregation of financial entries alongside a strict Role-Based Access Control (RBAC) mechanism.
 
@@ -14,10 +18,11 @@ Built with **Node.js, Express.js, and MongoDB**, the architecture focuses cleanl
 - **Validation & Error Boundaries**: Implemented `express-validator` to scrub and guarantee payload requirements. Abstracted error funnels into isolated middleware classes (`ApiError`/`ApiResponse`).
 - **Data Persistence & ACID Transactions**: Utilizes the Mongoose ODM. Relies heavily on MongoDB sessions/transactions for multi-document operations (such as creating an `AuditLog` precisely alongside a `FinancialRecord` edit).
 
-## API Documentation
-The API is completely documented dynamically via OpenAPI 3.0 (Swagger). 
-Once the server is booted, visit the interactive user interface to explore endpoints, schemas, and parameter requirements:
-👉 **[http://localhost:5000/api/docs](http://localhost:5000/api/docs)**
+## Live Deployment & Testing
+The backend is fully deployed and accessible via Vercel. 
+👉 **Base URL:** [https://finance-data-api-sigma.vercel.app](https://finance-data-api-sigma.vercel.app)
+
+*(A `live_test.js` script is included in the directory to quickly run end-to-end tests against the live deployment instead of localhost).*
 
 ## Setup Process
 1. Clone the repository and install all required dependencies:
